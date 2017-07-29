@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Favorite Gifs</title>
+  <style type="text/css">
+    
+    body {
+      /*background-color: #DCDCDC;*/
+      background-image: url("pink dust.png");
+    }
+    div,
+    form,
+    input {
+      margin: 10px;
+    }
+    h1{
+      color: #ff5722;
+    }
+    button{
+      background-color: coral;
+      color: white;
+      border-radius: 8px;
+      margin: 5px;
+      font-size: 16px;
+    }
+    #gif-form{
+      background-color: lightcoral;
+      padding-left: 15px;
+    }
+    #gifs-view {
+      background-color: coral;
+    }
+    p{
+      color: white;
+    }
+    .item {
+      display: inline;
+      float: left;
+      margin: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Gif Search</h1>
+    <!-- Rendered buttons will go here  -->
+    <div id="buttons-view"></div>
+    <form id="gif-form">
+      <label for="gif-input"><strong>Add an animal</strong></label>
+      <input type="text" id="gif-input"><br>
+      <!-- Button triggers new gif to be added -->
+      <input id="add-gif" type="submit" value="Submit">
+    </form>
+    <!-- gifs will go here -->
+    <div id="gifs-view"></div>
+    <!-- <img src="" id="test"> -->
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript">
+
+      // Initial array of animals, new animals will be pushed into this array
+      var gifs = ["coyote", "deer", "squirrel", "bear", "spirit"];
+      // displayGifInfo function re-renders the HTML to display the animal gifs (NOTE: Pronounced "jifzs")
+      function displayGifInfo() {
+        var gif = $(this).attr("data-name");
+        var queryURL = "http://api.giphy.com/v1/gifs/search?q=" +
+        gif + "&api_key=dc6zaTOxFJmzC&limit=10";
+        // Creates AJAX call for the specific gif button being clicked
+        $.ajax({
+          url: queryURL,
+          method: "GET"
+        }).done(function(response) //ajax call end
+          {
+          // $('#test').attr("src",response.data[0].images.downsized_still.url)
+          var results = response.data;
+            for (var i = 0; i < results.length; i++) {
+              var imgClass = "pic" + (i+1);
+              var oldSrc = results[i].images.fixed_height_small_still.url;
+              var newSrc = results[i].images.fixed_height_small.url;
+            var gifDiv = $("<div class='item'>");
+            var rating = results[i].rating;
+            var p = $("<p>").text("Rating: " + rating);
+            var animalImage = $("<img class= '"+imgClass+"' data-state='still' data-newsrc="+newSrc+" data-oldsrc="+oldSrc+">");
+            animalImage.addClass('image');
+            animalImage.attr("src", results[i].images.fixed_height_small_still.url); 
+            // var animalMovingImage =$("<img>");
+            // animalMovingImage.attr("src", results[i]).images.fixed_height_small.url);
+            //   $(<img>)
+            //   if (animalImage.attr("src", results[i].images.fixed_small.url === true); {
+            //       alert ("Your images are still");
+            //   } 
+            gifDiv.prepend(p);
+            gifDiv.prepend(animalImage);
+            $("#gifs-view").prepend(gifDiv);
+             
+        }; //for loop end
+      }); //done function end
+
+      
+      }; //displayGifInfo end
+
+
+      // Function for displaying gif data input
+      function renderButtons() {
+        // Deletes the gifs prior to adding new gifs
+        $("#buttons-view").empty();
+        // Loops through the array of gifs
+        for (var i = 0; i < gifs.length; i++) {
+          // Then dynamicaly generates buttons for each gif in the array
+          // This code $("<button>") is all jQuery needs to create the beginning and end tag. (<button></button>)
+          var button = $("<button>");
+          // Adds a class of gif to our button
+          button.addClass("gif");
+          // Added a data-attribute
+          button.attr("data-name", gifs[i]);
+          // Provided the initial button text
+          button.text(gifs[i]);
+          // Added the button to the buttons-view div
+          $("#buttons-view").append(button);
+        }
+      }
+      // When the add an animal button is clicked (html) run this function to get the string and push it to the array for the ajax call to run
+      $("#add-gif").on("click", function(event) {
+        event.preventDefault();
+        // This line of code will grab the input from the textbox
+        var gif = $("#gif-input").val().trim();
+        // The gif from the textbox is then added to our array
+        gifs.push(gif);
+        // Calling renderButtons which handles the processing of our gif array
+        renderButtons();
+      });//end of on-click listener/function
+      
+      // Adding click event listeners to all elements with a class of "gif"
+      $(document).on("click", ".gif", displayGifInfo);
+      // Calling the renderButtons function to display the intial buttons
+      renderButtons();
+
+      $("#gifs-view").on("click", '.image', function() { //default state is still, when an element with the class of image (aka "THIS") is clicked, run the function that assigns super special data attr's
+        console.log($(this).attr('data-oldsrc'))
+        var state = $(this).attr('data-state');
+        var newSrc = $(this).attr('data-newsrc'); //https://api.jquery.com/jquery.data/
+        var oldSrc = $(this).attr('data-oldsrc');
+
+        if (state === 'still'){
+          $(this).attr('src', newSrc);
+          $(this).attr('data-state', 'animate');
+        }
+        else {
+          $(this).attr('src', oldSrc);
+          $(this).attr('data-state', 'still');
+        }  
+      });//end of on-click function
+    
+    //    $(".item").on("click", function() {
+    //   // The attr jQuery method allows us to get or set the value of any attribute on our HTML element
+    //   var state = $(this).attr("data-state", "still");
+    //   // If the clicked image's state is still, update its src attribute to what its data-animate value is.
+    //   // Then, set the image's data-state to animate
+    //   // Else set src to the data-still value
+    //   if (state === "still") {
+    //     $(this).attr("src", $(this).attr("data-animate"));
+    //     $(this).attr("data-state", "animate");
+    //   } else {
+    //     $(this).attr("src", $(this).attr("data-still"));
+    //     $(this).attr("data-state", "still");
+    //   }
+    // });
+
+    </script>
+  </div>
+</body>
+</html>
